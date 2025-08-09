@@ -1,0 +1,11 @@
+utils librfs
+
+rfs-utils provides internal utility functions for rfs, including logging, global configuration file reading, and other common helper routines used throughout the system.
+
+Source files in this project must begin with the following header format:
+
+  src/filename.rs
+  SPDX-License-Identifier: MIT
+  Copyright (c) year author
+
+This header ensures consistent license attribution and copyright declaration across the codebase.
