@@ -1,20 +1,47 @@
-// src/logs.rs
+// utils/src/logs.rs
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Canmi
 
 use chrono::Local;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+use once_cell::sync::Lazy;
+use serde::Deserialize;
 use std::io::Write;
+use std::sync::Mutex;
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum LogLevel {
-    Info,
-    Debug,
-    Warn,
-    Error,
+    Error, // 1
+    Warn,  // 2
+    Info,  // 3
+    Debug, // 4
+}
+
+impl LogLevel {
+    fn as_u8(&self) -> u8 {
+        match self {
+            LogLevel::Error => 1,
+            LogLevel::Warn => 2,
+            LogLevel::Info => 3,
+            LogLevel::Debug => 4,
+        }
+    }
+}
+
+static LOG_LEVEL: Lazy<Mutex<LogLevel>> = Lazy::new(|| Mutex::new(LogLevel::Info));
+
+pub fn set_log_level(new_level: LogLevel) {
+    let mut level = LOG_LEVEL.lock().unwrap();
+    *level = new_level;
 }
 
 pub fn log(level: LogLevel, content: &str) {
+    let current_level = LOG_LEVEL.lock().unwrap();
+    if level.as_u8() > current_level.as_u8() {
+        return;
+    }
+
     let mut stream = match level {
         LogLevel::Warn | LogLevel::Error => StandardStream::stderr(ColorChoice::Auto),
         _ => StandardStream::stdout(ColorChoice::Auto),
